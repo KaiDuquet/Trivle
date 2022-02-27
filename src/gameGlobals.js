@@ -103,7 +103,6 @@ const wordBanks = {
 
 export const getWordBank = (day) => wordBanks[day];
 
-
 export const getOfficialWord = (day) => {
 	return officialBank[day];
 }
@@ -114,8 +113,6 @@ export const getAllWords = () => {
 	for (let day of days) {
 		wordBanks[day].words.forEach(allWords.add, allWords)
 	}
-	console.log(allWords)
-	console.log(allWords.size);
 	return allWords
 }
 
