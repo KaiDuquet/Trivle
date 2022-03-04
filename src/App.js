@@ -178,11 +178,11 @@ function App() {
 	}
 
 	const onStatsClick = () => {
-		//setStatsMenuActive(prev => !prev)
+		setStatsMenuActive(prev => prev)
 	}
 
 	const onSettingsClick = () => {
-		//setSettingsMenuActive(prev => !prev)
+		setSettingsMenuActive(prev => prev)
 	}
 
 	const checkDeleteConfirm = (e) => {
