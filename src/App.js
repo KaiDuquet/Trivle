@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { AiOutlineMenu } from 'react-icons/ai'
-
 import { keyboardKeys, WORD_LENGTH, MAX_GUESSES, getAllWords, getWordBank, getOfficialWord } from './gameGlobals';
 import WordRow from './components/WordRow';
+import MenuBar from './components/MenuBar';
+import DeletePrompt from './components/DeletePrompt';
 
 function App() {
 
@@ -11,6 +11,10 @@ function App() {
 	const [wordBank, setWordBank] = useState(JSON.parse(localStorage.getItem('wordBank')));
 	const [stats, setStats] = useState(JSON.parse(localStorage.getItem('stats')));
 	const [guess, setGuess] = useState('');
+
+	const [deleteMenuActive, setDeleteMenuActive] = useState(false);
+	const [statsMenuActive, setStatsMenuActive] = useState(false);
+	const [settingsMenuActive, setSettingsMenuActive] = useState(false);
 	
 	const weekdays = useMemo(() => (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]), [])
 	const getAbsoluteDay = () => {
@@ -54,11 +58,12 @@ function App() {
 	useEffect(() => {
 		if (gameState?.gameResult === 'playing')
 		{
+			if (deleteMenuActive || settingsMenuActive || statsMenuActive) return;
 			document.addEventListener('keydown', onKeyDown);
 			return () => { document.removeEventListener('keydown', onKeyDown); }
 		}
 		localStorage.setItem('stats', JSON.stringify(stats));
-	}, [gameState, onKeyDown, stats])
+	}, [gameState, onKeyDown, stats, deleteMenuActive, settingsMenuActive, statsMenuActive])
 
 	useEffect(() => {
 		if (gameState?.gameResult !== 'playing' || gameState?.guesses.length === 0) return;
@@ -168,44 +173,73 @@ function App() {
 		}
 	}, [stats])
 
+	const onDeleteClick = () => {
+		setDeleteMenuActive(prev => !prev);
+	}
+
+	const onStatsClick = () => {
+		setStatsMenuActive(prev => prev)
+	}
+
+	const onSettingsClick = () => {
+		setSettingsMenuActive(prev => prev)
+	}
+
+	const checkDeleteConfirm = (e) => {
+		e.preventDefault();
+		if (document.querySelector('.delete-data-input').value === 'CONFIRM') {
+			localStorage.removeItem('gameState');
+			localStorage.removeItem('wordBank');
+			localStorage.removeItem('stats');
+		}
+		window.location.reload();
+	}
+
 	return (
 		<div className='main'>
 			<div className="main-header">
+				<h2 className='number'>{`#${'000'.substring(0, 3 - ('' + (gameState?.absoluteDay + 1)).length) + (gameState?.absoluteDay + 1)}`}</h2>
 				<h1 className='title'>Trivle</h1>
-				<div className='header-menus'>
-					<AiOutlineMenu />
+				<MenuBar onStatsClick={onStatsClick} onSettingsClick={onSettingsClick} onDeleteClick={onDeleteClick}/>
+			</div>
+			<div className='game-body'>
+				<div className='daily-info'>
+					<h2>{weekdays[gameState?.weekday]}'s Theme: {gameState?.theme}</h2>
+				</div>
+				<div className='outer-container'>
+					<div className='main-container'>
+						{Array.from({length: MAX_GUESSES}).map((_, i) => {
+							if (i < gameState?.guesses.length)
+								return <WordRow key={i} solution={gameState?.solution} type='previous' guess={gameState?.guesses[i]}/>
+							else if (i === gameState?.guesses.length) 
+								return <WordRow key={i} solution={gameState?.solution} type='current' guess={guess} />
+							else
+								return <WordRow key={i} solution={gameState?.solution} type='unused' />
+						})}
+					</div>
+					<div className="keyboard">
+						{keyboardKeys.map((row, i) => (
+							<div key={i} className='keyboard-row'>
+								{row.map((letter, j) => (
+									<button className={`keyboard-key ${
+											gameState?.letters?.correct?.includes(letter) ? 'correct' : 
+											(gameState?.letters?.incorrect?.includes(letter) ? 'incorrect' : 
+											(gameState?.letters?.misplaced?.includes(letter) ? 'misplaced' : ''))
+										}`} key={j} onClick={() => {onKeyDown({key: letter})}}>
+										{letter.toUpperCase()}
+									</button>
+								))}
+							</div>
+						))}
+					</div>
 				</div>
 			</div>
-			<div className='daily-info'>
-				<h2>{weekdays[gameState?.weekday]}'s Theme: {gameState?.theme}</h2>
-			</div>
-			<div className='outer-container'>
-				<div className='main-container'>
-					{Array.from({length: MAX_GUESSES}).map((_, i) => {
-						if (i < gameState?.guesses.length)
-							return <WordRow key={i} solution={gameState?.solution} type='previous' guess={gameState?.guesses[i]}/>
-						else if (i === gameState?.guesses.length) 
-							return <WordRow key={i} solution={gameState?.solution} type='current' guess={guess} />
-						else
-							return <WordRow key={i} solution={gameState?.solution} type='unused' />
-					})}
-				</div>
-				<div className="keyboard">
-					{keyboardKeys.map((row, i) => (
-						<div key={i} className='keyboard-row'>
-							{row.map((letter, j) => (
-								<button className={`keyboard-key ${
-										gameState?.letters?.correct?.includes(letter) ? 'correct' : 
-										(gameState?.letters?.incorrect?.includes(letter) ? 'incorrect' : 
-										(gameState?.letters?.misplaced?.includes(letter) ? 'misplaced' : ''))
-									}`} key={j} onClick={() => {onKeyDown({key: letter})}}>
-									{letter.toUpperCase()}
-								</button>
-							))}
-						</div>
-					))}
-				</div>
-			</div>
+			{(deleteMenuActive || settingsMenuActive || statsMenuActive) &&
+				<div className='popup-overlay'></div>
+			}
+			{deleteMenuActive &&
+				<DeletePrompt onSubmit={checkDeleteConfirm} onClose={onDeleteClick}/>
+			}
 		</div>
 	);
 }
