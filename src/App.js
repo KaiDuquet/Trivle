@@ -1,14 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { AiOutlineMenu } from 'react-icons/ai'
 
 import { keyboardKeys, WORD_LENGTH, MAX_GUESSES, getAllWords, getWordBank, getOfficialWord } from './gameGlobals';
 import WordRow from './components/WordRow';
-
-const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const getAbsoluteDay = () => {
-	return Math.round(Math.abs((new Date('02/27/2022') - new Date()) / (24*3600*1000)))
-}
 
 function App() {
 
@@ -16,6 +11,11 @@ function App() {
 	const [wordBank, setWordBank] = useState(JSON.parse(localStorage.getItem('wordBank')));
 	const [stats, setStats] = useState(JSON.parse(localStorage.getItem('stats')));
 	const [guess, setGuess] = useState('');
+	
+	const weekdays = useMemo(() => (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]), [])
+	const getAbsoluteDay = () => {
+		return Math.floor(Math.abs((new Date(process.env.REACT_APP_START_DATE) - new Date()) / (24*3600*1000)))
+	}
 	
 	const onKeyDown = useCallback(
 		(e) => {
@@ -118,7 +118,7 @@ function App() {
 		const currentDay = getAbsoluteDay();
 
 		if (gameState && gameState?.solution) {
-			if (currentJSDay === (gameState?.day + 1) % 7) {
+			if (currentJSDay === (gameState?.weekday + 1) % 7) {
 				setGameState(null);
 				localStorage.removeItem('gameState');
 			}
@@ -126,7 +126,6 @@ function App() {
 		if (!gameState) {
 
 			const newWordBank = {
-				theme: getWordBank(weekdays[currentJSDay]).theme,
 				difficulty: getWordBank(weekdays[currentJSDay]).difficulty,
 				all: Array.from(getAllWords())
 			}
@@ -136,7 +135,7 @@ function App() {
 				solution: getOfficialWord(currentDay),
 				weekday: currentJSDay,
 				absoluteDay: currentDay,
-				theme: newWordBank.theme,
+				theme: getWordBank(weekdays[currentJSDay]).theme,
 				guesses: [],
 				letters: {
 					correct: [],
@@ -150,7 +149,7 @@ function App() {
 			localStorage.setItem('gameState', JSON.stringify(newGameState));
 			localStorage.setItem('wordBank', JSON.stringify(newWordBank));
 		}
-	}, [gameState, wordBank]);
+	}, [gameState, wordBank, weekdays]);
 
 	useEffect(() => {
 		if (!stats) {

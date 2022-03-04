@@ -122,3 +122,27 @@ export const keyboardKeys = [['q','w','e','r','t','y','u','i','o','p'],
 
 export const WORD_LENGTH = 5;
 export const MAX_GUESSES = 6;
+
+// ALL WORDS BANK GENERATION
+
+/*function generate() {
+	const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+	const { general, ...allBanks } = wordBanks;
+	const officialBank = []
+
+	let day = new Date().getDay();
+
+	while (officialBank.length < 92 * 7) {
+		let weekday = days[day];
+
+		if (allBanks[weekday].words.length === 0) break;
+		const randIndex = Math.floor(Math.random() * allBanks[weekday].words.length);
+		officialBank.push(allBanks[weekday].words.splice(randIndex, 1)[0]);
+		day = (day + 1) % 7;
+	}
+
+	console.log(officialBank)
+}
+
+generate();*/
