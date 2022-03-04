@@ -168,6 +168,10 @@ function App() {
 		}
 	}, [stats])
 
+	localStorage.removeItem('gameState');
+	localStorage.removeItem('wordBank');
+	localStorage.removeItem('stats');
+
 	return (
 		<div className='main'>
 			<div className="main-header">
